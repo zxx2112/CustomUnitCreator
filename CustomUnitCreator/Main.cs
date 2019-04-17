@@ -12,7 +12,8 @@ namespace CustomUnitCreator
 {
     public class Main
     {
-        static UnityModManager.ModEntry _modEntry;
+        public static UnityModManager.ModEntry _modEntry;
+        public static GameObject unitRoot;
         static bool Load(UnityModManager.ModEntry modEntry) {
             _modEntry = modEntry;
             //管理器中创建一个按钮可以进入新场景,场景中实例化一个球体,也许还需要个相机
@@ -28,6 +29,7 @@ namespace CustomUnitCreator
                 var unitCreatorScene = SceneManager.CreateScene("UnitCreator");
                 SceneManager.SetActiveScene(unitCreatorScene);
                 //不能立即生成物体,得等待场景切换
+                Time.timeScale = 1;
             }
         }
 
@@ -43,7 +45,10 @@ namespace CustomUnitCreator
                 //创建一个相机
                 _modEntry.Logger.Log("-创建相机");
                 var camera = new GameObject("CustomMainCamera").AddComponent<Camera>();
-                camera.gameObject.AddComponent<Rigidbody>().useGravity = false;
+                var rigid = camera.gameObject.AddComponent<Rigidbody>();
+                rigid.useGravity = false;
+                rigid.freezeRotation = true;
+                rigid.isKinematic = true;
                 camera.gameObject.AddComponent<SphereCollider>();
                 camera.gameObject.AddComponent<CameraController>();
                 camera.transform.position = new Vector3(0, 1, -10);
@@ -60,23 +65,23 @@ namespace CustomUnitCreator
                 ground.transform.position = Vector3.zero;
                 ground.transform.localScale = new Vector3(100, 1, 100);
                 //尝试创建一个小人,基础
-                _modEntry.Logger.Log("-创建UnitRoot");
-                var unitRoot = new GameObject("UnitRoot");
-                unitRoot.transform.position = Vector3.zero;
-                unitRoot.transform.rotation = Quaternion.identity;
                 //获取蓝图,然后调用Spawn
                 _modEntry.Logger.Log("-创建默认单位");
                 var unitDatabase = LandfallUnitDatabase.GetDatabase();
-                unitDatabase.m_unitEditorBlueprint.Spawn(Vector3.zero, Quaternion.identity, Team.Blue);
+                Unit unit = null;
+                unitDatabase.m_unitEditorBlueprint.Spawn(new Vector3(0,2,0), Quaternion.identity, Team.Blue,out unit);
+                unitRoot = unit.gameObject;
                 _modEntry.Logger.Log("创建完成!");
-
+                //创建GUI
+                var gui = new GameObject("UnitEditorGUI");
+                gui.AddComponent<UnitEditorGUI>();
             }
         }
     }
     //相机旋转器
     public class CameraController : MonoBehaviour {
         Rigidbody rigid;
-        float moveSpeed = 10;
+        float moveSpeed = 100;
         float rotateSpeed = 40;
         void Start() {
             rigid = GetComponent<Rigidbody>();
@@ -101,6 +106,63 @@ namespace CustomUnitCreator
                 targetPos.y -= moveSpeed * Time.deltaTime;
             }
             rigid.MovePosition(targetPos);
+        }
+    }
+    public class UnitEditorGUI : MonoBehaviour
+    {
+        List<GameObject> weapons;
+
+        int currentIndex = 0;
+
+        void Start() {
+            var database = LandfallUnitDatabase.GetDatabase();
+            weapons = database.Weapons;
+            currentIndex = 0;
+        }
+        void OnGUI() {
+            
+            GUILayout.BeginArea(new Rect(new Vector2(Screen.width - 600, 30), new Vector2(600, 50)));
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("上一个武器")) {
+                ChangeIndex(-1);
+                ApplyWeapon();
+            }
+            GUILayout.Label(weapons[currentIndex].name);
+            if (GUILayout.Button("下一个武器")) {
+                ChangeIndex(1);
+                ApplyWeapon();
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.EndArea();
+        }
+
+        void ChangeIndex(int changed) {
+            currentIndex += changed;
+            if (currentIndex < 0) currentIndex += weapons.Count;
+            if (currentIndex >= weapons.Count) currentIndex -= weapons.Count;
+        }
+        void ApplyWeapon() {
+            var unitRig = Main.unitRoot.GetComponent<UnitRig>();
+            var prop = weapons[currentIndex].GetComponent<CharacterItem>();
+            var propData = new PropItemData();
+            SpawnProp(prop, propData);
+        }
+
+        void SpawnProp(CharacterItem prop, PropItemData propData) {
+            Weapon component = prop.GetComponent<Weapon>();
+            CharacterItem component2;
+            if (component == null) {
+                component2 = Main.unitRoot.GetComponent<UnitRig>().SpawnProp(prop, propData, Stitcher.TransformCatalog.RigType.Human, Team.Blue, null, true).GetComponent<CharacterItem>();
+            } 
+            else {
+                //处理已存在的武器
+                //if (this.m_hasWeapon) {
+                //    return null;
+                //}
+                //this.m_hasWeapon = true;
+                Quaternion rotation = Main.unitRoot.GetComponentInChildren<WeaponHandler>().transform.rotation;
+                component2 = LandfallUnitDatabase.GetDatabase().m_unitEditorBlueprint.SetWeapon(Main.unitRoot.GetComponent<Unit>(), Team.Blue, prop.gameObject, propData, HoldingHandler.HandType.Right, rotation, new List<GameObject>()).GetComponent<WeaponItem>();
+            }
         }
     }
 }
