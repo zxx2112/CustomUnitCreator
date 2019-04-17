@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\SteamLibrary\steamapps\common\Totally Accurate Battle Simulator\TotallyAccurateBattleSimulator_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Totally Accurate Battle Simulator\TotallyAccurateBattleSimulator_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -42,22 +42,35 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityEngine.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>..\lib\Unity2018.2.21\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityModManager">
-      <HintPath>..\..\..\GitHub\unity-mod-manager\UnityModManagerApp\bin\Debug\UnityModManager.dll</HintPath>
+      <HintPath>..\lib\Unity2018.2.21\UnityModManager.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

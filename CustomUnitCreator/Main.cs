@@ -43,6 +43,9 @@ namespace CustomUnitCreator
                 //创建一个相机
                 _modEntry.Logger.Log("-创建相机");
                 var camera = new GameObject("CustomMainCamera").AddComponent<Camera>();
+                camera.gameObject.AddComponent<Rigidbody>().useGravity = false;
+                camera.gameObject.AddComponent<SphereCollider>();
+                camera.gameObject.AddComponent<CameraController>();
                 camera.transform.position = new Vector3(0, 1, -10);
                 //创建一个灯光
                 _modEntry.Logger.Log("-创建灯光");
@@ -68,6 +71,36 @@ namespace CustomUnitCreator
                 _modEntry.Logger.Log("创建完成!");
 
             }
+        }
+    }
+    //相机旋转器
+    public class CameraController : MonoBehaviour {
+        Rigidbody rigid;
+        float moveSpeed = 10;
+        float rotateSpeed = 40;
+        void Start() {
+            rigid = GetComponent<Rigidbody>();
+        }
+
+        void Update() {
+            var horizontalInput = Input.GetAxisRaw("Horizontal");
+            var verticalInput = Input.GetAxisRaw("Vertical");
+            var direction = (horizontalInput * transform.right + verticalInput * transform.forward).normalized;
+            var targetPos = transform.position + direction * Time.deltaTime * moveSpeed;
+
+            if (Input.GetKey(KeyCode.Q)) {
+                transform.Rotate(Vector3.up, -rotateSpeed * Time.deltaTime);
+            }
+            if (Input.GetKey(KeyCode.E)) {
+                transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
+            }
+            if (Input.GetKey(KeyCode.Space)) {
+                targetPos.y += moveSpeed * Time.deltaTime;
+            }
+            if (Input.GetKey(KeyCode.LeftControl)) {
+                targetPos.y -= moveSpeed * Time.deltaTime;
+            }
+            rigid.MovePosition(targetPos);
         }
     }
 }
