@@ -69,7 +69,7 @@ namespace CustomUnitCreator
                 _modEntry.Logger.Log("-创建默认单位");
                 var unitDatabase = LandfallUnitDatabase.GetDatabase();
                 Unit unit = null;
-                unitDatabase.m_unitEditorBlueprint.Spawn(new Vector3(0,2,0), Quaternion.identity, Team.Blue,out unit);
+                unitDatabase.m_unitEditorBlueprint.Spawn(new Vector3(0,2,0), Quaternion.Euler(0,180,0), Team.Blue,out unit);
                 unitRoot = unit.gameObject;
                 _modEntry.Logger.Log("创建完成!");
                 //创建GUI
@@ -112,39 +112,61 @@ namespace CustomUnitCreator
     {
         List<GameObject> weapons;
 
-        int currentIndex = 0;
+        int currentLeftIndex = 0;
+        int currentRightIndex = 0;
+
+        List<GameObject> lastLeftWeapons = new List<GameObject>();
+        List<GameObject> lastRightWeapons = new List<GameObject>();
 
         void Start() {
             var database = LandfallUnitDatabase.GetDatabase();
             weapons = database.Weapons;
-            currentIndex = 0;
+            currentLeftIndex = 0;
+            currentRightIndex = 0;
         }
         void OnGUI() {
             
             GUILayout.BeginArea(new Rect(new Vector2(Screen.width - 600, 30), new Vector2(600, 50)));
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("上一个武器")) {
-                ChangeIndex(-1);
-                ApplyWeapon();
-            }
-            GUILayout.Label(weapons[currentIndex].name);
-            if (GUILayout.Button("下一个武器")) {
-                ChangeIndex(1);
-                ApplyWeapon();
-            }
+                GUILayout.BeginVertical();
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("左手武器");
+                    if (GUILayout.Button("上一个武器")) {
+                        ChangeIndex(-1, ref currentLeftIndex);
+                        ApplyWeapon(weapons[currentLeftIndex], UnitRig.EquipType.LEFT);
+                    }
+                    GUILayout.Label(weapons[currentLeftIndex].name);
+                    if (GUILayout.Button("下一个武器")) {
+                        ChangeIndex(1, ref currentLeftIndex);
+                        ApplyWeapon(weapons[currentLeftIndex], UnitRig.EquipType.LEFT);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("右手武器");
+                    if (GUILayout.Button("上一个武器")) {
+                        ChangeIndex(-1, ref currentRightIndex);
+                        ApplyWeapon(weapons[currentRightIndex], UnitRig.EquipType.RIGHT);
+                    }
+                    GUILayout.Label(weapons[currentRightIndex].name);
+                    if (GUILayout.Button("下一个武器")) {
+                        ChangeIndex(1,ref currentRightIndex);
+                        ApplyWeapon(weapons[currentRightIndex], UnitRig.EquipType.RIGHT);
+                    }
             GUILayout.EndHorizontal();
+            GUILayout.BeginVertical();
             GUILayout.EndArea();
         }
 
-        void ChangeIndex(int changed) {
-            currentIndex += changed;
-            if (currentIndex < 0) currentIndex += weapons.Count;
-            if (currentIndex >= weapons.Count) currentIndex -= weapons.Count;
+        void ChangeIndex(int changed,ref int index) {
+            index += changed;
+            if (index < 0) index += weapons.Count;
+            if (index >= weapons.Count) index -= weapons.Count;
         }
-        void ApplyWeapon() {
+        void ApplyWeapon(GameObject weapon,UnitRig.EquipType equipType) {
             var unitRig = Main.unitRoot.GetComponent<UnitRig>();
-            var prop = weapons[currentIndex].GetComponent<CharacterItem>();
+            var prop = weapon.GetComponent<CharacterItem>();
             var propData = new PropItemData();
+            propData.m_equip = equipType;
             SpawnProp(prop, propData);
         }
 
@@ -156,12 +178,35 @@ namespace CustomUnitCreator
             } 
             else {
                 //处理已存在的武器
-                //if (this.m_hasWeapon) {
-                //    return null;
-                //}
-                //this.m_hasWeapon = true;
+                
+                //Main.unitRoot.GetComponent<Unit>().WeaponHandler.UseHands();
                 Quaternion rotation = Main.unitRoot.GetComponentInChildren<WeaponHandler>().transform.rotation;
-                component2 = LandfallUnitDatabase.GetDatabase().m_unitEditorBlueprint.SetWeapon(Main.unitRoot.GetComponent<Unit>(), Team.Blue, prop.gameObject, propData, HoldingHandler.HandType.Right, rotation, new List<GameObject>()).GetComponent<WeaponItem>();
+                
+                List<GameObject> targetList = null;
+                if(propData.m_equip == UnitRig.EquipType.LEFT) {
+                    targetList = lastLeftWeapons;
+                }
+                else if(propData.m_equip == UnitRig.EquipType.RIGHT) {
+                    targetList = lastRightWeapons;
+                }
+                if (targetList.Count != 0) {
+                    for (int i = 0; i < targetList.Count; i++) {
+                        GameObject.Destroy(targetList[i]);
+                    }
+                    targetList.Clear();
+                }
+                var handType = HoldingHandler.HandType.Left;
+                if (propData.m_equip == UnitRig.EquipType.LEFT) {
+                    handType = HoldingHandler.HandType.Left;
+                }
+                else if(propData.m_equip == UnitRig.EquipType.RIGHT) {
+                    handType = HoldingHandler.HandType.Right;
+                }
+                component2 = LandfallUnitDatabase
+                    .GetDatabase()
+                    .m_unitEditorBlueprint
+                    .SetWeapon(Main.unitRoot.GetComponent<Unit>(), Team.Blue, prop.gameObject, propData, handType, rotation, targetList)
+                    .GetComponent<WeaponItem>();
             }
         }
     }
