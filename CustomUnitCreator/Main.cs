@@ -102,7 +102,7 @@ namespace CustomUnitCreator
             if (Input.GetKey(KeyCode.Space)) {
                 targetPos.y += moveSpeed * Time.deltaTime;
             }
-            if (Input.GetKey(KeyCode.LeftControl)) {
+            if (Input.GetKey(KeyCode.C)) {
                 targetPos.y -= moveSpeed * Time.deltaTime;
             }
             rigid.MovePosition(targetPos);
@@ -112,59 +112,114 @@ namespace CustomUnitCreator
     {
         List<GameObject> weapons;
 
+        List<CharacterItem> heads;
+        List<CharacterItem> necks;
+        List<CharacterItem> shoulders;
+        List<CharacterItem> torsos;
+        List<CharacterItem> arms;
+        List<CharacterItem> wrists;
+        List<CharacterItem> hands;
+        List<CharacterItem> waist;
+        List<CharacterItem> legs;
+        List<CharacterItem> feet;
+        List<CharacterItem> meleeWeapons;
+        List<CharacterItem> rangeWeapons;
+
         int currentLeftIndex = 0;
         int currentRightIndex = 0;
 
+        //temp
         List<GameObject> lastLeftWeapons = new List<GameObject>();
         List<GameObject> lastRightWeapons = new List<GameObject>();
 
         void Start() {
-            var database = LandfallUnitDatabase.GetDatabase();
-            weapons = database.Weapons;
-            currentLeftIndex = 0;
-            currentRightIndex = 0;
+           LandfallUnitDatabase database = LandfallUnitDatabase.GetDatabase();
+           weapons = database.Weapons;
+
+           heads = database.GetPropsOfType(UnitRig.GearType.HEAD);
+           necks = database.GetPropsOfType(UnitRig.GearType.NECK);
+           shoulders = database.GetPropsOfType(UnitRig.GearType.SHOULDER);
+           torsos = database.GetPropsOfType(UnitRig.GearType.TORSO);
+           arms = database.GetPropsOfType(UnitRig.GearType.ARMS);
+           wrists = database.GetPropsOfType(UnitRig.GearType.WRISTS);
+           hands = database.GetPropsOfType(UnitRig.GearType.HANDS);
+           waist = database.GetPropsOfType(UnitRig.GearType.WAIST);
+           legs = database.GetPropsOfType(UnitRig.GearType.LEGS);
+           feet = database.GetPropsOfType(UnitRig.GearType.FEET);
+           meleeWeapons = database.GetWeaponsOfType<MeleeWeapon>();
+           rangeWeapons = database.GetWeaponsOfType<RangeWeapon>();
+           currentLeftIndex = 0;
+           currentRightIndex = 0;
         }
         void OnGUI() {
             
-            GUILayout.BeginArea(new Rect(new Vector2(Screen.width - 600, 30), new Vector2(600, 50)));
-                GUILayout.BeginVertical();
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("左手武器");
-                    if (GUILayout.Button("上一个武器")) {
-                        ChangeIndex(-1, ref currentLeftIndex);
-                        ApplyWeapon(weapons[currentLeftIndex], UnitRig.EquipType.LEFT);
-                    }
-                    GUILayout.Label(weapons[currentLeftIndex].name);
-                    if (GUILayout.Button("下一个武器")) {
-                        ChangeIndex(1, ref currentLeftIndex);
-                        ApplyWeapon(weapons[currentLeftIndex], UnitRig.EquipType.LEFT);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("右手武器");
-                    if (GUILayout.Button("上一个武器")) {
-                        ChangeIndex(-1, ref currentRightIndex);
-                        ApplyWeapon(weapons[currentRightIndex], UnitRig.EquipType.RIGHT);
-                    }
-                    GUILayout.Label(weapons[currentRightIndex].name);
-                    if (GUILayout.Button("下一个武器")) {
-                        ChangeIndex(1,ref currentRightIndex);
-                        ApplyWeapon(weapons[currentRightIndex], UnitRig.EquipType.RIGHT);
-                    }
-            GUILayout.EndHorizontal();
+            GUILayout.BeginArea(new Rect(new Vector2(Screen.width - 600, 30), new Vector2(600, 250)));
             GUILayout.BeginVertical();
+            GUILayout.Label("label1");
+            GUILayout.Label("label2");
+            GUILayout.Label("label3");
+            //DrawLeftWeaponSelect("meleeWeapons", meleeWeapons, ref currentLeftIndex);
+            //GUILayout.Space(50);
+            //DrawLeftWeaponSelect("rangeWeapons", rangeWeapons, ref currentLeftIndex);
+            //GUILayout.Space(50);
+            //DrawLeftWeaponSelect("weapons", weapons, ref currentLeftIndex);
+            GUILayout.EndVertical();
             GUILayout.EndArea();
         }
-
-        void ChangeIndex(int changed,ref int index) {
-            index += changed;
-            if (index < 0) index += weapons.Count;
-            if (index >= weapons.Count) index -= weapons.Count;
+        void DrawLeftWeaponSelect(string name,List<CharacterItem> items,ref int currentIndex) {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name);
+            if (items == null) {
+                GUILayout.Label("list is null");
+                return;
+            }
+            if (items.Count == 0) {
+                GUILayout.Label("列表为空");
+                return;
+            }
+            if (GUILayout.Button("上一个武器")) {
+                ChangeIndex(-1, items.Count, ref currentIndex);
+                ApplyWeapon(items[currentIndex], UnitRig.EquipType.LEFT);
+            }
+            GUILayout.Label(items.Count == 0 ? "None" : items[currentIndex].name);
+            if (GUILayout.Button("下一个武器")) {
+                ChangeIndex(1, items.Count, ref currentIndex);
+                ApplyWeapon(items[currentIndex], UnitRig.EquipType.LEFT);
+            }
+            GUILayout.EndHorizontal();
         }
-        void ApplyWeapon(GameObject weapon,UnitRig.EquipType equipType) {
+        void DrawLeftWeaponSelect(string name,List<GameObject> objs, ref int currentIndex) {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name);
+            if (objs == null) {
+                GUILayout.Label("objs is null");
+                return;
+            }
+            if (objs.Count == 0) {
+                GUILayout.Label("列表为空");
+                return;
+            }
+
+            if (GUILayout.Button("上一个武器")) {
+                ChangeIndex(-1, objs.Count, ref currentIndex);
+                ApplyWeapon(objs[currentIndex].GetComponent<CharacterItem>(), UnitRig.EquipType.LEFT);
+            }
+            GUILayout.Label(objs.Count == 0 ? "None" : objs[currentIndex].name);
+            if (GUILayout.Button("下一个武器")) {
+                ChangeIndex(1, objs.Count, ref currentIndex);
+                ApplyWeapon(meleeWeapons[currentIndex].GetComponent<CharacterItem>(), UnitRig.EquipType.LEFT);
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        void ChangeIndex(int changed,int maxIndex,ref int index) {
+            index += changed;
+            if (index < 0) index += maxIndex;
+            if (index >= meleeWeapons.Count) index -= maxIndex;
+        }
+        void ApplyWeapon(CharacterItem weapon,UnitRig.EquipType equipType) {
             var unitRig = Main.unitRoot.GetComponent<UnitRig>();
-            var prop = weapon.GetComponent<CharacterItem>();
+            var prop = weapon;
             var propData = new PropItemData();
             propData.m_equip = equipType;
             SpawnProp(prop, propData);
